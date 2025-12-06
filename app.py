@@ -10,6 +10,8 @@ from flask_login import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy.exc import IntegrityError
+from datetime import datetime
+
 import os
 
 app = Flask(__name__)
@@ -44,9 +46,13 @@ class Task(db.Model):
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     is_done = db.Column(db.Boolean, default=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    priority = db.Column(db.String(20), default="Medium")  # Low / Medium / High
+    due_date = db.Column(db.Date, nullable=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     user = db.relationship('User', backref=db.backref('tasks', lazy=True))
+
 
 
 @login_manager.user_loader
@@ -121,16 +127,32 @@ def dashboard():
     if request.method == "POST":
         title = request.form.get("title")
         description = request.form.get("description")
+        priority = request.form.get("priority")
+        due_date_str = request.form.get("due_date")
+
 
         if not title:
             flash("Task title is required.", "warning")
             return redirect(url_for("dashboard"))
+        due_date = None
+        if due_date_str:
+            try:
+                due_date = datetime.strptime(due_date_str, "%Y-%m-%d").date()
+            except ValueError:
+                flash("Invalid date format.", "warning")
+                return redirect(url_for("dashboard"))
+
+        if not priority:
+            priority = "Medium"
 
         new_task = Task(
-            title=title,
-            description=description,
-            user_id=current_user.id
+        title=title,
+        description=description,
+        priority=priority,
+        due_date=due_date,
+        user_id=current_user.id
         )
+
         db.session.add(new_task)
         db.session.commit()
         flash("Task added!", "success")

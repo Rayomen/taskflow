@@ -2,22 +2,47 @@
 
 {% block content %}
 <div class="row">
+  <!-- Left: Add task form -->
   <div class="col-md-5 mb-4">
     <h3 class="mb-3">Hello, {{ name }} 👋</h3>
     <h5 class="mb-3">Add a new task</h5>
+
     <form method="POST">
       <div class="mb-3">
         <label class="form-label">Title</label>
         <input name="title" type="text" class="form-control" required />
       </div>
+
       <div class="mb-3">
         <label class="form-label">Description (optional)</label>
-        <textarea name="description" class="form-control" rows="3"></textarea>
+        <textarea
+          name="description"
+          class="form-control"
+          rows="3"
+        ></textarea>
       </div>
-      <button type="submit" class="btn btn-primary w-100">Add Task</button>
+
+      <div class="mb-3">
+        <label class="form-label">Priority</label>
+        <select name="priority" class="form-select">
+          <option value="Low">Low</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="High">High</option>
+        </select>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Due date</label>
+        <input type="date" name="due_date" class="form-control" />
+      </div>
+
+      <button type="submit" class="btn btn-primary w-100">
+        Add Task
+      </button>
     </form>
   </div>
 
+  <!-- Right: Task list -->
   <div class="col-md-7">
     <h5 class="mb-3">Your tasks</h5>
 
@@ -26,20 +51,39 @@
         {% for task in tasks %}
         <li class="list-group-item d-flex justify-content-between align-items-start">
           <div>
-            <div class="fw-bold {% if task.is_done %}text-decoration-line-through text-muted{% endif %}">
+            <div
+              class="fw-bold {% if task.is_done %}text-decoration-line-through text-muted{% endif %}"
+            >
               {{ task.title }}
             </div>
+
             {% if task.description %}
-            <small class="{% if task.is_done %}text-muted{% endif %}">
-              {{ task.description }}
-            </small>
+            <div class="{% if task.is_done %}text-muted{% endif %}">
+              <small>{{ task.description }}</small>
+            </div>
             {% endif %}
+
+            <div>
+              <small class="{% if task.is_done %}text-muted{% endif %}">
+                Priority: {{ task.priority }}
+                {% if task.due_date %}
+                  · Due: {{ task.due_date }}
+                {% endif %}
+              </small>
+            </div>
           </div>
+
           <div class="ms-3 d-flex gap-2">
-            <a href="{{ url_for('toggle_task', task_id=task.id) }}" class="btn btn-sm btn-outline-success">
+            <a
+              href="{{ url_for('toggle_task', task_id=task.id) }}"
+              class="btn btn-sm btn-outline-success"
+            >
               {% if task.is_done %}Undo{% else %}Done{% endif %}
             </a>
-            <a href="{{ url_for('delete_task', task_id=task.id) }}" class="btn btn-sm btn-outline-danger">
+            <a
+              href="{{ url_for('delete_task', task_id=task.id) }}"
+              class="btn btn-sm btn-outline-danger"
+            >
               Delete
             </a>
           </div>
@@ -47,7 +91,9 @@
         {% endfor %}
       </ul>
     {% else %}
-      <p class="text-muted">No tasks yet. Add one using the form on the left.</p>
+      <p class="text-muted">
+        No tasks yet. Add one using the form on the left.
+      </p>
     {% endif %}
   </div>
 </div>
